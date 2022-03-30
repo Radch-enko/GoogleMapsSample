@@ -11,6 +11,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -21,6 +23,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.button.MaterialButton;
 
 /**
@@ -42,6 +45,7 @@ public class MapsActivity extends AppCompatActivity
      * @see #onRequestPermissionsResult(int, String[], int[])
      */
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+    private static final float DEFAULT_ZOOM = 15f;
 
     /**
      * Flag indicating whether a requested permission has been denied after returning in
@@ -52,6 +56,9 @@ public class MapsActivity extends AppCompatActivity
     private GoogleMap map;
 
     private MaterialButton vavilonMarkerButton, routeToCollegeButton;
+    private FusedLocationProviderClient fusedLocationClient;
+    LatLng collegeCoords = new LatLng(54.979080793844965, 73.37730797979034);
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,10 +79,49 @@ public class MapsActivity extends AppCompatActivity
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+
     }
 
     private void createRouteToMyCollegeOnMap() {
-//        map.addPolyline(new PolylineOptions().addAll());
+
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        // Got last known location. In some rare situations this can be null.
+                        if (location != null) {
+                            // Logic to handle location object
+                            addMyMarker(new LatLng(location.getLatitude(), location.getLongitude()));
+                            addCollegeMarker();
+
+                            LatLng myLocation = new LatLng(location.getLatitude(), location.getLongitude());
+                            // Draw route
+                            map.addPolyline(new PolylineOptions()
+                                    .add(myLocation)
+                                    .add(collegeCoords));
+
+                            map.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, DEFAULT_ZOOM));
+                        }
+                    }
+                });
+
+
+    }
+
+    private void addMyMarker(LatLng latLng) {
+        map.addMarker(new MarkerOptions()
+                .title(getString(R.string.my_location))
+                .position(latLng));
+    }
+
+    private void addCollegeMarker() {
+        map.addMarker(new MarkerOptions()
+                .title(getString(R.string.college_title))
+                .snippet(getString(R.string.college_snippet))
+                .position(collegeCoords));
     }
 
     private void setVavilonMarkerOnMap() {
@@ -84,7 +130,7 @@ public class MapsActivity extends AppCompatActivity
                 .title(getString(R.string.vavilon_marker_title))
                 .snippet(getString(R.string.vavilon_marker_snippet))
         );
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(vavilonCoords, 50f);
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(vavilonCoords, DEFAULT_ZOOM);
         map.animateCamera(cameraUpdate);
     }
 

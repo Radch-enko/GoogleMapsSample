@@ -9,4 +9,7 @@
     <string name="routeToCollege">Проложить маршрут до колледжа</string>
     <string name="vavilon_marker_title">Кинотеатр Вавилон</string>
     <string name="vavilon_marker_snippet">Сюда обычно ходим после пар почекать топовое кинцо</string>
+    <string name="college_title">Омский авиационный колледж</string>
+    <string name="college_snippet">Я здесь учусь</string>
+    <string name="my_location">Я нахожусь здесь</string>
 </resources>
